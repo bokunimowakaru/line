@@ -9,7 +9,7 @@ Example 2: ESP32 (IoTセンサ) Wi-Fi ボタン for M5Sack Core
 
     使用機材(例)：M5Sack Core
 
-                                          Copyright (c) 2021-2022 Wataru KUNINO
+                                          Copyright (c) 2021-2024 Wataru KUNINO
 ********************************************************************************
 描画が遅い場合は、ボードマネージャでM5Stackバージョン1.0.9等を選んでください。
 *******************************************************************************/
@@ -22,18 +22,23 @@ Example 2: ESP32 (IoTセンサ) Wi-Fi ボタン for M5Sack Core
 #include "off_sw_jpg.h"                         // OFF状態のスイッチのJPEGデータ
 
 /******************************************************************************
- LINE Notify 設定
- ******************************************************************************
- ※LINE アカウントと LINE Notify 用のトークンが必要です。
-    1. https://notify-bot.line.me/ へアクセス
-    2. 右上のアカウントメニューから「マイページ」を選択
-    3. トークン名「esp32」を入力
-    4. 送信先のトークルームを選択する(「1:1でLINE Notifyから通知を受け取る」等)
-    5. [発行する]ボタンでトークンが発行される
-    6. [コピー]ボタンでクリップボードへコピー
-    7. 下記のLINE_TOKENのダブルコート(")内に貼り付け
+ Wi-Fi の設定
  *****************************************************************************/
-#define LINE_TOKEN  "your_token"                // LINE Notify トークン★要設定
+#define SSID "1234ABCD"                         // 無線LANアクセスポイント SSID
+#define PASS "password"                         // パスワード
+
+/******************************************************************************
+ LINE Messaging API 設定
+ ******************************************************************************
+  LINE 公式アカウントと Messaging API 用のChannel情報が必要です。
+    1. https://entry.line.biz/start/jp/ からLINE公式アカウントを取得する
+    2. https://manager.line.biz/ の設定で「Messaging APIを利用する」を実行する
+    3. Channel 情報 (Channel ID と Channel secret) を取得する
+    4. スクリプト内の変数 line_ch_id にChannel IDを記入する
+    5. スクリプト内の変数 line_ch_pw にChannel secretを記入する
+ *****************************************************************************/
+#define line_ch_id "0000000000"                         // Channel ID
+#define line_ch_pw "00000000000000000000000000000000"   // Channel secret
 
 /******************************************************************************
  Wi-Fi コンシェルジェ照明担当（ワイヤレスLED子機） の設定
@@ -42,11 +47,7 @@ Example 2: ESP32 (IoTセンサ) Wi-Fi ボタン for M5Sack Core
     1. ex01_led/ex01_led_io搭載デバイスのシリアルターミナルでIPアドレスを確認
     2. 下記のLED_IPのダブルコート(")内に貼り付け
  *****************************************************************************/
-#define LED_IP "192.168.1.0"                    // LED搭載子のIPアドレス★要設定
-
-#define SSID "1234ABCD"                         // 無線LANアクセスポイント SSID
-#define PASS "password"                         // パスワード
-#define PORT 1024                               // 送信のポート番号
+#define LED_IP "192.168.1.0"                    // LED搭載子のIPアドレス
 
 /******************************************************************************
  UDP 宛先 IP アドレス設定
@@ -54,13 +55,65 @@ Example 2: ESP32 (IoTセンサ) Wi-Fi ボタン for M5Sack Core
  カンマ区切りでUPD宛先IPアドレスを設定してください。
  末尾を255にすると接続ネットワーク(アクセスポイント)にブロードキャスト
  *****************************************************************************/
+#define PORT 1024                               // 送信のポート番号
 IPAddress UDPTO_IP = {255,255,255,255};         // UDP宛先 IPアドレス
 
 String btn_S[]={"No","OFF","Ping","ON"};        // 送信要否状態0～3の名称
 
+String get_token(){                             /* LINE用 トークン取得部 */
+    HTTPClient http;                            // HTTPリクエスト用インスタンス
+    http.setConnectTimeout(15000);              // タイムアウトを15秒に設定する
+    if(strcmp(line_ch_id,"0000000000") == 0){   // line_ch_id 未入力時
+        M5.Lcd.println("ERROR: Pls set line_ch_id and pwd");
+        return "";
+    }
+    String url = "https://api.line.me/oauth2/v3/token";
+    String body = "grant_type=client_credentials&";
+    body += "client_id=" + String(line_ch_id) + "&";
+    body += "client_secret=" + String(line_ch_pw);
+    http.begin(url);                            // HTTPリクエスト先を設定する
+    http.addHeader("Content-Type","application/x-www-form-urlencoded");
+    int httpCode = http.POST(body);             // HTTP送信を行う
+    String token="";
+    if(httpCode == 200){
+        String S = http.getString();            // HTTPデータを変数Sへ
+        int i = S.indexOf("\"access_token\"");
+        if((i>0) && (S.substring(i+15, i+16).equals("\""))){
+            token = S.substring(i+16, i+16+174);
+            // M5.Lcd.println(token);           // 取得したトークンを表示する
+        }
+    }else{
+        M5.Lcd.println("HTTP ERROR: "+String(httpCode));
+    }
+    http.end();                                 // HTTP通信を終了する
+    return token;                               // トークンを応答
+}
+
+int message_to_line(String message){            /* LINE用 メッセージ送信部 */
+    String token = get_token();                 // トークンを取得する
+    int token_len = token.length();             // 取得したトークン長
+    if(token_len != 174){                       // トークン長が174以外の時
+        M5.Lcd.println("ERROR: Token Length Error; " + String(token_len));
+        return 0;
+    }
+    HTTPClient http;                            // HTTPリクエスト用インスタンス
+    http.setConnectTimeout(15000);              // タイムアウトを15秒に設定する
+    String url = "https://api.line.me/v2/bot/message/broadcast";
+    M5.Lcd.println(url);                        // 送信URLを表示
+    http.begin(url);                            // HTTPリクエスト先を設定する
+    http.addHeader("Content-Type","application/json");
+    http.addHeader("Authorization","Bearer " + token);
+    String json = "{\"messages\":[{\"type\":\"text\",\"text\":\"";
+    json += message + "\"}]}";                  // メッセージを送信用jsonに代入
+    M5.Lcd.println(json);                       // HTTP送信内容を表示する
+    int httpCode = http.POST(json);             // HTTPでメッセージを送信する
+    http.end();                                 // HTTP通信を終了する
+    return httpCode;                            // HTTPリザルトを応答
+}
+
 int btnUpdate(){                                // ボタン状態に応じて画面切換
     M5.update();                                // M5Stack用IO状態の更新
-    delay(1);                                   // ボタンの誤作動防止用
+    delay(10);                                  // ボタンの誤作動防止用
     int tx_en = 0;                              // 送信要否tx_en(0:送信無効)
     if( M5.BtnA.wasPressed() ){                 // ボタンAが押されたとき
         M5.Lcd.drawJpg(off_sw_jpg,off_sw_jpg_len);  // LCDにJPEG画像off_swを表示
@@ -108,22 +161,14 @@ void loop(){                                    // 繰り返し実行する関�
     udp.endPacket();                            // UDP送信の終了(実際に送信)
     delay(200);                                 // 送信待ち時間
 
-    HTTPClient http;                            // HTTPリクエスト用インスタンス
-    http.setConnectTimeout(15000);              // タイムアウトを15秒に設定する
-    String url;                                 // URLを格納する変数を生成
-
-    if(strlen(LINE_TOKEN) > 42){                // LINE_TOKEN設定時
-        url = "https://notify-api.line.me/api/notify";  // LINEのURLを代入
-        M5.Lcd.println(url);                    // 送信URLをLCD表示
-        http.begin(url);                        // HTTPリクエスト先を設定する
-        http.addHeader("Content-Type","application/x-www-form-urlencoded");
-        http.addHeader("Authorization","Bearer " + String(LINE_TOKEN));
-        http.POST("message=ボタン(" + btn_S[tx_en]  + ")が押されました");
-        http.end();                             // HTTP通信を終了する
+    if(strcmp(line_ch_id,"0000000000")){        // LINE_TOKEN設定時
+        message_to_line("ボタン(" + btn_S[tx_en]  + ")が押されました");
     }
     if(strcmp(LED_IP,"192.168.1.0")){           // 子機IPアドレス設定時
-        url = "http://" + String(LED_IP) + "/?L="; // アクセス先URL
+        String url = "http://" + String(LED_IP) + "/?L="; // アクセス先URL
         url += String(tx_en == 1 ? 0 : 1);      // L=OFF時0、その他1
+        HTTPClient http;                        // HTTPリクエスト用インスタンス
+        http.setConnectTimeout(15000);          // タイムアウトを15秒に設定する
         M5.Lcd.println(url);                    // 送信URLをLCD表示
         http.begin(url);                        // HTTPリクエスト先を設定する
         http.GET();                             // ワイヤレスLEDに送信する
