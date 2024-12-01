@@ -210,3 +210,16 @@ https://github.com/bokunimowakaru/esp/tree/master/2_example/example11_pir
 https://github.com/bokunimowakaru/esp/tree/master/2_example/example43_pir
 https://github.com/bokunimowakaru/esp32c3/tree/master/learning/ex06_pir
 *******************************************************************************/
+/*
+###############################################################################
+# 参考文献：下記のcurl文の一部を引用しました
+# LINE DevelopersLINE Developers, Messaging APIリファレンス
+# https://developers.line.biz/ja/reference/messaging-api/
+###############################################################################
+# 注意事項
+# ・メッセージ送信回数の無料枠は200回/月です。超過分は有料となります。
+# ・プログラムの繰り返し動作や誤作動などで無料枠を超過する場合があります。
+# ・15分間だけ有効なステートレスチャネルアクセストークンを使用しています。
+# ・本スクリプトでは、実行の度にTokenを取得しています。
+###############################################################################
+*/

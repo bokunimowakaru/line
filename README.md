@@ -38,6 +38,12 @@ LINE Official Account Manager：
 
 ![Channel情報表示](https://bokunimo.net/blog/wp-content/uploads/2024/11/line_mes_07_64.png)  
 
+## 注意事項
+
+* メッセージ送信回数の無料枠は200回/月です。超過分は有料となります。
+* プログラムの繰り返し動作や誤作動などで無料枠を超過する場合があります。
+* 15分間だけ有効なステートレスチャネルアクセストークンを使用しています。
+* 各サンプル・スクリプトでは、実行の度にTokenを取得しています。
 
 ## (参考情報) Raspberry Pi を使った方法
 
