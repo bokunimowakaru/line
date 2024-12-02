@@ -48,13 +48,16 @@ LINE Official Account Manager：
 
 プログラムは下記に保存してあります。
 
-* 10分ごとに送信するESP32用プログラム： [esp32/ex01_basic/ex01_basic.ino](esp32/ex01_basic/ex01_basic.ino)  
-* ボタンで送信するM5Stack用プログラム： [m5_core/ex01_basic/ex01_basic.ino](m5_core/ex01_basic/ex01_basic.ino)  
+* 10分ごとに送信するESP32用プログラム：
+[https://github.com/bokunimowakaru/line/blob/master/esp32/ex01_basic/ex01_basic.ino](esp32/ex01_basic/ex01_basic.ino)  
+* ボタンで送信するM5Stack用プログラム：
+[https://github.com/bokunimowakaru/line/blob/master/m5_core/ex01_basic/ex01_basic.ino](m5_core/ex01_basic/ex01_basic.ino)  
 
 プログラムの内容については、各プログラム内に記載しています。  
 また、下記のブログ記事でも紹介しています。  
 
-ESP32 や M5Stack で LINE Messaging API を使う： [https://bokunimo.net/blog/esp/5331/](https://bokunimo.net/blog/esp/5331/)  
+ESP32 や M5Stack で LINE Messaging API を使う：
+[https://bokunimo.net/blog/esp/5331/](https://bokunimo.net/blog/esp/5331/)  
 
 ## ESP32 IoT操作機器 Wi-Fi ボタン
 
@@ -66,8 +69,10 @@ ON/OFF操作をするたびに、LINEに通知します。
 
 プログラムは下記に保存してあります。
 
-* Wi-Fi ボタンESP32用プログラム： [esp32/ex02_sw/](esp32/ex02_sw/)  
-* Wi-Fi ボタンM5Stack用プログラム： [m5_core/ex02_sw/](m5_core/ex02_sw/)  
+* Wi-Fi ボタンESP32用プログラム：
+[https://github.com/bokunimowakaru/line/blob/master/esp32/ex02_sw/](esp32/ex02_sw/)  
+* Wi-Fi ボタンM5Stack用プログラム：
+[https://github.com/bokunimowakaru/line/blob/master/m5_core/ex02_sw/](m5_core/ex02_sw/)  
 
 照明側のプログラムは、別のリポジトリにあります。  
 
@@ -86,8 +91,8 @@ ON/OFF操作をするたびに、LINEに通知します。
 
 プログラムは下記に保存してあります。  
 
-* Wi-Fi ボタンESP32用プログラム： [esp32/ex06_pir/](esp32/ex06_pir/)  
-* Wi-Fi ボタンM5Stack用プログラム： [m5_core/ex06_pir/](m5_core/ex06_pir/)  
+* Wi-Fi ボタンESP32用プログラム： [https://github.com/bokunimowakaru/line/blob/master/esp32/ex06_pir/](esp32/ex06_pir/)  
+* Wi-Fi ボタンM5Stack用プログラム： [https://github.com/bokunimowakaru/line/blob/master/m5_core/ex06_pir/](m5_core/ex06_pir/)  
 
 
 ## 注意事項
